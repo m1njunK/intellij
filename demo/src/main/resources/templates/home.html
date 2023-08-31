@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/template}">
+<th:block layout:fragment="content">
+    <h1>Home HTML</h1>
+    <p>${data}</p>
+    <th:block th:text="${data}"></th:block>
+    <p th:text="${data}"></p>
+    <div>
+        <img th:src="@{/img/cat.jpg}"/>
+    </div>
+</th:block>
+</html>

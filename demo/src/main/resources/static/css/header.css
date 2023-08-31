@@ -1,0 +1,22 @@
+/*
+header.css
+*/
+
+*{
+    color:gray;
+}
+
+body{
+    padding:20px;
+    width: 850px;
+    margin: 0 auto;
+    border: 1px solid black;
+}
+
+img:hover{
+    transform: scale(0.1);
+}
+
+img{
+    transition: scale 3s;
+}
