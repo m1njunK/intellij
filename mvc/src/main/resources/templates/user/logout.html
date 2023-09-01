@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/template}">
+<th:block layout:fragment="content">
+    <form name="logoutForm"
+          th:action="@{/user/logout}"
+          method="post"	>
+        <input type="hidden" name="${_csrf.parameterName}"
+               value="${_csrf.token}"/>
+    </form>
+    <script>
+        window.onload = function(){
+            logoutForm.submit();
+        }
+    </script>
+</th:block>
+</html>

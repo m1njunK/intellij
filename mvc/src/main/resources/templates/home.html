@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{common/template}">
+
+<th:block layout:fragment="content">
+    <p th:text="${data}">Hello Thymeleaf!!!</p>
+    <div class="row">
+            <img class="col-md-6" th:src="@{/img/cat3.jpg}"/>
+            <img class="col-md-6" th:src="@{/img/puppy.jpg}"/>
+            <img class="col-md-6" th:src="@{/img/profile/profile.jpg}"/>
+    </div>
+</th:block>
+</html>

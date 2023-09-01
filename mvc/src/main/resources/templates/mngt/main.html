@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{common/template}">
+<th:block layout:fragment="content">
+    <div class="container">
+        <h1>MANAGEMENT MAIN</h1>
+        <!-- memberList -->
+        <table class="container table tabled-bordered">
+            <tr>
+                <td>회원번호</td>
+                <td>아이디</td>
+                <td>이름</td>
+                <td>권한</td>
+                <td>회원가입일</td>
+                <td>최종방문일</td>
+                <td>활성화여부</td><!-- 탈퇴여부 -->
+                <td>권한선택</td>
+            </tr>
+            <th:block th:if="${!#lists.isEmpty(memberList)}">
+                <tr th:each="member : ${memberList}">
+                    <td th:text="${member.u_no}"></td>
+                    <td id="user_id" th:text="${member.u_id}"></td>
+                    <td th:text="${member.u_name}"></td>
+                    <td>
+                        <select id="memberAuth">
+                            <th:block th:each="auth : ${member.authList}">
+                                <option th:if="${auth eq 'ROLE_USER'}" value="ROLE_USER">일반사용자</option>
+                                <option th:if="${auth eq 'ROLE_MEMBERSHIP'}" value="ROLE_MEMBERSHIP">매니저</option>
+                                <option th:if="${auth eq 'ROLE_ADMIN'}" value="ROLE_ADMIN">관리자</option>
+                            </th:block>
+                        </select>
+                    </td>
+                    <td th:text="${#dates.format(member.u_date, 'yyyy-MM-dd HH:mm:ss')}">
+                    </td>
+                    <td th:text="${#dates.format(member.u_visit, 'yyyy-MM-dd HH:mm:ss')}">
+                    </td>
+                    <td>
+                        <select>
+                            <th:block th:if="${member.u_withdraw eq 'y'}">
+                                <option value="y" th:selected="true">비활성화</option>
+                                <option value="y" >활성화</option>
+                            </th:block>
+                            <th:block th:if="${member.u_withdraw eq 'n'}">
+                                <option value="y" >비활성화</option>
+                                <option value="y" th:selected="true">활성화</option>
+                            </th:block>
+
+
+                        </select>
+                        <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                            <input type="button" class="deleteBtn btn btn-danger btn-xs" value="DELETEYN"/>
+                        </th:block>
+                    </td>
+                        <td>
+                            <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+                            <select class="changeAuth">
+                                <option disabled selected>권한선택</option>
+                                <option value="ROLE_USER">일반사용자</option>
+                                <option value="ROLE_MEMBERSHIP">매니저</option>
+                                <option value="ROLE_ADMIN">관리자</option>
+                            </select>
+                            </th:block>
+                        </td>
+                </tr>
+                </c:forEach>
+            </th:block>
+            <th:block th:if="${#lists.isEmpty(memberList)}">
+                <tr>
+                    <th colspan="8">등록된 회원정보가 없습니다.</th>
+                </tr>
+            </th:block>
+        </table>
+    </div>
+    <script th:inline="javascript">
+        $(".deleteBtn").on("click",function(){
+            var u_delete = $(this).parent().find("select").val();
+            console.log(u_delete);
+            var parentTr = $(this).closest("tr");
+            var u_id = parentTr.find("#user_id").text();
+            console.log(u_id);
+
+            $.ajax({
+                type : "POST",
+                url : [[@{/mngt/user/delete}]],
+                data : {
+                    u_id : u_id,
+                    u_withdraw : u_delete
+                },
+                dataType : "text",
+                success : function(data){
+                    if(data == 'y' || data == 'n'){
+                        alert("변경 완료 : " + data);
+                    }else{
+                        alert('권한이 부족합니다. ADMIN자리를 노리세요!');
+                    }
+                }
+            });
+        });
+
+
+        // 권한 회수 및 부여
+        $(".changeAuth").on("change",function(){
+            var selectBox = $(this);
+            var changeAuthValue = selectBox.val();
+
+            var parentTr = $(this).parent().parent();
+            var u_id = parentTr.find("#user_id").text();
+
+            $.ajax({
+                type : "POST",
+                 url : [[@{/mngt/user/changeAuth}]],
+                data : {
+                    u_id : u_id,
+                    u_auth : changeAuthValue
+                },
+                dataType : "json",
+                success : function(result){
+                    console.log(result);
+                    var el = parentTr.find("#memberAuth");
+                    var str = "";
+                    $(result).each(function(){
+                        if(this.u_auth == 'ROLE_USER'){
+                            str+="<option>일반사용자</option>";
+                        }else if(this.u_auth == 'ROLE_MEMBERSHIP'){
+                            str+="<option>매니저</option>";
+                        }else if(this.u_auth == 'ROLE_ADMIN'){
+                            str+="<option>관리자</option>";
+                        }
+                    });
+                    el.html(str);
+                    selectBox.find("option").eq(0).prop("selected",true);
+                }
+            });
+
+        });
+
+        $(document).ajaxSend(function(e,xhr,options){
+            xhr.setRequestHeader(
+                    [[${_csrf.headerName}]],
+                    [[${_csrf.token}]]);
+        });
+    </script>
+</th:block>
+</html>

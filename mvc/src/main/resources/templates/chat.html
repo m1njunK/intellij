@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{common/template}">
+<th:block layout:fragment="content">
+    <style>
+        .chatBox{
+            height:200px;
+            overflow-y:scroll;
+            border:1px solid #ccc;
+            border-radius:5px;
+        }
+
+        .chatWrap{
+            margin-top:3px;
+            margin-bottom:3px;
+        }
+
+        .chatWrap img{
+            width:30px;
+            height:30px;
+            border-radius:15px;
+            border:1px solid black;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <div class="container">
+        <h1>CHAT PAGE - </h1>
+        <!-- 어떤 사용자가 어떤 메세지를 전달 했는지를 u_profile 출력 -->
+        <div class="container chatBox" id="data">
+        </div>
+        <br/>
+        <div class="row">
+            <div class="col-md-10">
+                <input type="text" class="form-control"
+                       id="message" />
+            </div>
+            <div class="col-md-2">
+                <input type="button" id="sendBtn"
+                       class="form-control btn btn-primary" value="SEND"/>
+            </div>
+        </div>
+    </div>
+    <script th:inline="javascript">
+
+        const profile = [[${#authentication.principal.member.u_profile}]];
+        const name = [[${#authentication.principal.member.u_name}]];
+
+        var sock = new SockJS("chatHandler");
+        // 서버와 연결이 성사되었을 때
+        sock.onopen = function(){
+            console.log("연결 완료");
+            // sock.send("연결 됨");
+            var msg = `${profile},${name},님이 입장하셨습니다.`;
+            sock.send(msg);
+        }
+
+        // 서버와 연결이 끊겼을 때 호출
+        sock.onclose = function(){
+            console.log("연결 끊김");
+        }
+
+        // server에서 메세지가 전달되었을 호출
+        sock.onmessage = function(message){
+            console.log(message);
+            var msg = message.data;
+            var datas = msg.split(",");
+            /*
+            "${member.u_profile}
+            ,
+            ${member.u_name}
+            ,
+            님이 입장하셨습니다.";
+            */
+            // 0 : u_profile
+            // 1 : u_name
+            // 2 : message
+            var userProfile = datas[0];
+            var userName = datas[1];
+            var userMessage = datas[2];
+            var str = "<div class='chatWrap'>";
+            if(userProfile != null && userProfile != ''){
+                str += '<img src=[[@{/upload'+userProfile+'}]]/>';
+            }else{
+                str += '<img src=[[@{/img/profile/profile.jpg}]]'+'/>';
+            }
+            str += "&nbsp;";
+            str += userName +" : " + userMessage;
+            str +="</div>";
+            $("#data").append(str);
+            $("#data").focus();
+            $("#data").scrollTop($("#data").prop("scrollHeight"));
+            $("#message").focus();
+        }
+
+        // send 버튼이 눌러졌을때
+        $("#sendBtn").click(function(){
+            // 메세지 전달
+            sendMessage();
+        });
+
+        // 메세지 작성 칸에서 enter가 눌러졌을 때
+        $("#message").keydown(function(e){
+            console.log(e.keyCode);
+            // 13 == Enter
+            if(e.keyCode == 13){
+                // 메세지 전달
+                sendMessage();
+            }
+        });
+
+        function sendMessage(){
+            var message = $("#message").val();
+            var userProfile = profile;
+            var userName = name;
+            sock.send(userProfile+","+userName+","+message);
+            $("#message").val("");
+        }
+    </script>
+</th:block>
+</html>

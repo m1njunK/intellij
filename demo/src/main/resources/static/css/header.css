@@ -16,7 +16,3 @@ body{
 img:hover{
     transform: scale(0.1);
 }
-
-img{
-    transition: scale 3s;
-}
